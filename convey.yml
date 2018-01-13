@@ -1,0 +1,57 @@
+tasks:
+  import:
+    type: docker/import
+    files:
+      - .
+  export:
+    type: docker/export
+    files:
+      - dumbcloudthing
+  clean:
+    type: convey/clean
+    files:
+      - dumbcloudthing
+
+  build:
+    type: docker/run
+    image: convey/go-build:latest
+    environment:
+      - GOOS=linux
+      - GOARCH=amd64
+      - GO_PACKAGE=github.com/aphistic/dumbcloudthing
+      - CGO_ENABLED=0
+
+  build-image:
+    type: docker/build
+    dockerfile: Dockerfile
+    tag: dumbcloudthing:latest
+    files:
+      - dumbcloudthing
+
+plans:
+  default:
+    stages:
+      - name: import
+        tasks:
+          - import
+      - name: build
+        tasks:
+          - build
+      - name: export
+        tasks:
+          - export
+
+  images:
+    stages:
+      - name: import
+        tasks:
+          - import
+      - name: build-image
+        tasks:
+          - build-image
+  
+  clean:
+    stages:
+      - name: clean
+        tasks:
+          - clean
