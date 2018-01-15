@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	fmt.Printf("Listening on :3030\n")
 	http.ListenAndServe(":3030", newHttpHandler())
 }
 
