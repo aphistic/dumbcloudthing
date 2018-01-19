@@ -30,6 +30,7 @@ func newHttpHandler() *httpHandler {
 		},
 	}
 
+	r.HandleFunc("/health", h.Health).Methods("GET")
 	r.HandleFunc("/kv/{key}", h.Get).Methods("GET")
 	r.HandleFunc("/kv/{key}", h.Set).Methods("POST")
 	r.HandleFunc("/code/{code}", h.Code).Methods("GET")
@@ -41,6 +42,11 @@ func newHttpHandler() *httpHandler {
 func (h *httpHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.router.ServeHTTP(w, req)
 	req.Body.Close()
+}
+
+func (h *httpHandler) Health(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
 
 func (h *httpHandler) Code(w http.ResponseWriter, req *http.Request) {
