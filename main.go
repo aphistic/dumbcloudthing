@@ -30,6 +30,7 @@ func newHttpHandler() *httpHandler {
 		},
 	}
 
+	r.HandleFunc("/ping", h.Ping).Methods("GET")
 	r.HandleFunc("/health", h.Health).Methods("GET")
 	r.HandleFunc("/kv/{key}", h.Get).Methods("GET")
 	r.HandleFunc("/kv/{key}", h.Set).Methods("POST")
@@ -44,12 +45,19 @@ func (h *httpHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	req.Body.Close()
 }
 
+func (h *httpHandler) Ping(w http.ResponseWriter, req *http.Request) {
+	fmt.Printf("Got ping from %s\n", req.RemoteAddr)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("PONG!"))
+}
+
 func (h *httpHandler) Health(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
 }
 
 func (h *httpHandler) Code(w http.ResponseWriter, req *http.Request) {
+	fmt.Printf("Got code from %s\n", req.RemoteAddr)
 	vars := mux.Vars(req)
 
 	code, err := strconv.ParseUint(vars["code"], 10, 0)
@@ -64,6 +72,7 @@ func (h *httpHandler) Code(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *httpHandler) Exit(w http.ResponseWriter, req *http.Request) {
+	fmt.Printf("Got exit from %s\n", req.RemoteAddr)
 	vars := mux.Vars(req)
 
 	code, err := strconv.ParseInt(vars["code"], 10, 0)
@@ -77,6 +86,7 @@ func (h *httpHandler) Exit(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *httpHandler) Get(w http.ResponseWriter, req *http.Request) {
+	fmt.Printf("Got get from %s\n", req.RemoteAddr)
 	conn := h.pool.Get()
 	defer conn.Close()
 
@@ -100,6 +110,7 @@ func (h *httpHandler) Get(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *httpHandler) Set(w http.ResponseWriter, req *http.Request) {
+	fmt.Printf("Got set from %s\n", req.RemoteAddr)
 	conn := h.pool.Get()
 	defer conn.Close()
 
