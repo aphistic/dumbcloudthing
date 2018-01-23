@@ -92,6 +92,7 @@ func (h *httpHandler) Get(w http.ResponseWriter, req *http.Request) {
 
 	vars := mux.Vars(req)
 
+	fmt.Printf("Doing redis GET on %s", vars["key"])
 	res, err := conn.Do("GET", vars["key"])
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -123,7 +124,13 @@ func (h *httpHandler) Set(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	fmt.Printf("Doing redis SET on %s to:\n%s\n", vars["key"], body)
 	_, err = conn.Do("SET", vars["key"], body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("Error writing to redis: %s", err)))
+		return
+	}
 
 	w.WriteHeader(200)
 	w.Write([]byte(body))
@@ -156,6 +163,7 @@ func dialRedis() (redis.Conn, error) {
 		opts = append(opts, redis.DialPassword(pass))
 	}
 
+	fmt.Printf("Dialing %s:%d/%d\n", host, port, db)
 	conn, err := redis.Dial(
 		"tcp",
 		fmt.Sprintf("%s:%d", host, port),
@@ -165,10 +173,12 @@ func dialRedis() (redis.Conn, error) {
 		return nil, err
 	}
 
+	fmt.Printf("Pinging redis\n")
 	_, err = conn.Do("PING")
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Printf("Got redis connection\n")
 	return conn, nil
 }
